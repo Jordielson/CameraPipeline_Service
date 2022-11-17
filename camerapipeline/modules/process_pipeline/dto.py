@@ -3,6 +3,7 @@ from marshmallow import Schema, fields
 class DigitalProcessSchema(Schema):
     id = fields.Number()
     name = fields.Str()
+    url = fields.Str()
     category = fields.Str()
 
 class ParametersSchema(Schema):

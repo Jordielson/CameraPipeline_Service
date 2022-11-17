@@ -8,6 +8,6 @@ blueprint = Blueprint("ProcessPipeline", __name__, url_prefix="/api/process-pipe
 @blueprint.route('/', methods=[HttpVerbENUM.POST.value])
 def process_pipeline(service: ProcessPipelineService):
 
-    service.process_pipeline(dto=request.json)
+    img = service.process_pipeline(dto=request.json)
     
-    return jsonify({'success':True}), 200, {'ContentType':'application/json'} 
+    return img, 200, {'ContentType':'application/json'} 
