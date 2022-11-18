@@ -1,12 +1,12 @@
 from flask import Blueprint, request
 from camerapipeline.shared.enums.http_verb import HttpVerbENUM
-from .service import CropImageService
+from .service import EffectImageService
 
-blueprint = Blueprint("CropImage", __name__, url_prefix="/api/crop-image")
+blueprint = Blueprint("ApplyEffect", __name__, url_prefix="/api/apply-effect")
 
 @blueprint.route('/', methods=[HttpVerbENUM.POST.value])
-def crop_image(service: CropImageService):
+def apply_effect(service: EffectImageService):
 
-    image = service.crop_image(dto=request.json)
+    image = service.apply_effect(dto=request.json)
     
     return image, 200, {'ContentType':'application/json'} 
