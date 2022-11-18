@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 from camerapipeline.shared.enums.http_verb import HttpVerbENUM
 from .service import CropImageService
 

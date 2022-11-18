@@ -1,10 +1,10 @@
 import importlib
 import traceback
 from types import ModuleType
-from camerapipeline.modules import get_named_modules
+from camerapipeline.modules import __all__
 
 def init_routes(app):
-    for named_module in get_named_modules():
+    for named_module in __all__:
         try:
             module: ModuleType = importlib.import_module(
                 f'.modules.{named_module}.controller', package='camerapipeline')
