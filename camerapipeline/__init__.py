@@ -4,8 +4,7 @@ from flask_cors import CORS
 
 from camerapipeline.core import routes
 
-app = Flask(__name__, instance_relative_config=True)
-app.config.from_pyfile('application.cfg', silent=True)
+app = Flask(__name__)
 
 CORS(app)
 
