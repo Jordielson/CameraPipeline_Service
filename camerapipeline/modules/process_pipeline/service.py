@@ -1,9 +1,7 @@
 from typing import List
 from .dto import ProcessPipelineSchema
 from .dto import ServiceSchema
-from camerapipeline.shared.utlis.image import image_encode
 import requests
-from PIL import Image
 
 class ProcessPipelineService():
     def __init__(self):
@@ -11,12 +9,6 @@ class ProcessPipelineService():
 
     def process_pipeline(self, dto: ProcessPipelineSchema):
         images: list = []
-        r = requests.get(dto['input'], stream=True)
-        if r.status_code != 200:
-            raise Exception("Image is not present")
-
-        im = Image.open(r.raw)
-        encoded_string = image_encode(im)
 
         services: List[ServiceSchema] = dto['pipeline']['pdilist']
         root_list: list = self.find_root(services=services)
@@ -26,7 +18,7 @@ class ProcessPipelineService():
                     self.process_sequence(
                         service=service, 
                         services=services, 
-                        image=encoded_string
+                        image=dto['input']
                     )
                 )
         return images[0]
