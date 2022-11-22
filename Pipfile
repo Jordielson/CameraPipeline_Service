@@ -13,6 +13,7 @@ flask-injector = "*"
 requests = "*"
 opencv-python = "*"
 pillow = "*"
+matplotlib = "*"
 
 [dev-packages]
 
