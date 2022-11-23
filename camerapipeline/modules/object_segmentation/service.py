@@ -21,7 +21,7 @@ class ObjectSegmentationService():
         # Use minSize because for not 
         # bothering with extra-small 
         # dots that would look like STOP signs
-        stop_data = cv.CascadeClassifier('stop_data.xml')
+        stop_data = cv.CascadeClassifier('./resource/tracking_object/stop_data.xml')
         
         found = stop_data.detectMultiScale(img_gray, 
                                         minSize =(20, 20))
