@@ -21,7 +21,10 @@ class ProcessPipelineService():
                         image=dto['input']
                     )
                 )
-        return images[0]
+        if len(images):
+            return images[0]
+        else:
+            return dto['input']
 
     def find_root(self, services: List[ServiceSchema]) -> List[int]:
         root_list: List[int] = []
