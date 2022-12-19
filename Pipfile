@@ -15,6 +15,7 @@ opencv-python = "*"
 pillow = "*"
 importlib-metadata = "*"
 typing-extensions = "*"
+gunicorn = "*"
 
 [dev-packages]
 
