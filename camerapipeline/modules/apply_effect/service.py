@@ -1,5 +1,5 @@
 from .dto import EffectImageSchema
-from .enum import ColorCodeEnum
+from .enums import ColorCodeEnum
 from camerapipeline.shared.utlis.image import *
 import cv2 as cv
 import numpy as np
