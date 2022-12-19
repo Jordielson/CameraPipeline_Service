@@ -2,7 +2,6 @@ from typing import List
 from .dto import ObjectSegmentationSchema
 import numpy as np
 import cv2 as cv
-from matplotlib import pyplot as plt
 from camerapipeline.shared.utlis.image import *
 
 class ObjectSegmentationService():
@@ -44,9 +43,9 @@ class ObjectSegmentationService():
                 
         # Creates the environment of 
         # the picture and shows it
-        plt.subplot(1, 1, 1)
-        plt.imshow(img_rgb)
-        plt.show()
+        # plt.subplot(1, 1, 1)
+        # plt.imshow(img_rgb)
+        # plt.show()
 
         im_pil = Image.fromarray(img_rgb)
 

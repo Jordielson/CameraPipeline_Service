@@ -13,7 +13,6 @@ flask-injector = "*"
 requests = "*"
 opencv-python = "*"
 pillow = "*"
-matplotlib = "*"
 importlib-metadata = "*"
 
 [dev-packages]
