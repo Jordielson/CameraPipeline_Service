@@ -7,6 +7,6 @@ blueprint = Blueprint("ApplyEffect", __name__, url_prefix="/api/apply-effect")
 @blueprint.route('/', methods=[HttpVerbENUM.POST.value])
 def apply_effect(service: EffectImageService):
 
-    image = service.apply_effect(dto=request.json)
+    resp = service.apply_effect(dto=request.json)
     
-    return image, 200, {'ContentType':'application/json'} 
+    return resp, 200, {'ContentType':'application/json'} 

@@ -22,4 +22,4 @@ class EffectImageService():
 
         im_pil = Image.fromarray(hsv)
 
-        return image_encode(im_pil)
+        return {"image":image_encode(im_pil)}
