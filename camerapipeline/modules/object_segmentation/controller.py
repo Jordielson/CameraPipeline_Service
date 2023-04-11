@@ -7,6 +7,6 @@ blueprint = Blueprint("ObjectSegmentation", __name__, url_prefix="/api/object-se
 @blueprint.route('/', methods=[HttpVerbENUM.POST.value])
 def object_segmentation(service: ObjectSegmentationService):
 
-    image = service.tracking(dto=request.json)
+    resp = service.tracking(dto=request.json)
     
-    return image, 200, {'ContentType':'application/json'} 
+    return resp, 200, {'ContentType':'application/json'} 

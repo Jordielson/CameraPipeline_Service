@@ -2,6 +2,9 @@ from typing import List
 from .dto import ProcessPipelineSchema
 from .dto import ServiceSchema
 import requests
+import json
+
+headers = {'Accept': 'application/json'}
 
 class ProcessPipelineService():
     def __init__(self):
@@ -18,7 +21,7 @@ class ProcessPipelineService():
                     self.process_sequence(
                         service=service, 
                         services=services, 
-                        image=dto['input']
+                        data={'image': dto['input']}
                     )
                 )
         if len(images):
@@ -39,31 +42,30 @@ class ProcessPipelineService():
 
         return root_list
 
-    def process_sequence(self, service: ServiceSchema, services: List[ServiceSchema], image: str):
+    def process_sequence(self, service: ServiceSchema, services: List[ServiceSchema], data: dict):
         url: str = service['digitalProcess']['url']
-        json: dict = {
-            "image": image,
-        }
+
         for value_parameter in service['valueParameters']:
             value = value_parameter['value']
 
-            if value_parameter['parameter']['type'] == 'NUMBER':
-                value = float(value)
-            elif value_parameter['parameter']['type'] == 'BOOL':
-                if value == 'true':
-                    value = True
-                else:
-                    value = False
-            
-            json[value_parameter['parameter']['name']] = value
+            if value:
+                if value_parameter['parameter']['type'] == 'NUMBER':
+                    value = float(value)
+                elif value_parameter['parameter']['type'] == 'BOOL':
+                    if value == 'true':
+                        value = True
+                    else:
+                        value = False
+                        
+                data[value_parameter['parameter']['name']] = value
 
-        response = requests.post(url, json=json)
+        response = requests.post(url, json=data, headers=headers)
         if response.status_code != 200:
             raise Exception('{} {}'.format(service['digitalProcess']['name'], 'could not process the file'))
-
+        
         if len(service['children']):
             for serv in services:
                 if serv['index'] in service['children']:
-                    return self.process_sequence(service=serv, services=services, image=response.content.decode('utf-8'))
+                    return self.process_sequence(service=serv, services=services, data=response.json())
         else:
             return response.content

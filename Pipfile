@@ -14,6 +14,10 @@ requests = "*"
 opencv-python = "*"
 pillow = "*"
 importlib-metadata = "*"
+onnxruntime = "*"
+mediapipe = "*"
+boto3 = "*"
+tinydb = "*"
 
 [dev-packages]
 

@@ -49,4 +49,4 @@ class ObjectSegmentationService():
 
         im_pil = Image.fromarray(img_rgb)
 
-        return image_encode(im_pil)
+        return {"image": image_encode(im_pil)}
