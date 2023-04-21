@@ -1,4 +1,3 @@
-from typing import List
 from .dto import FaceFeatureExtractionDTO
 from camerapipeline.shared.utlis.image import *
 
@@ -7,6 +6,8 @@ import cv2
 import stow
 import numpy as np 
 import onnxruntime as ort
+
+schema: FaceFeatureExtractionDTO = FaceFeatureExtractionDTO()
 
 class FaceFeatureExtractionService():
     def __init__(self):
@@ -19,7 +20,9 @@ class FaceFeatureExtractionService():
         self.model_path = os.environ["FACE_FEATURE_MODEL_PATH"]
 
 
-    def face_feature_extraction(self, dto: FaceFeatureExtractionDTO):
+    def face_feature_extraction(self, frame: np.ndarray, data: dict):
+        dto = schema.load(data)
+
         if not stow.exists(self.model_path):
             raise Exception(f"Model doesn't exists in {self.model_path}")
 
@@ -27,18 +30,16 @@ class FaceFeatureExtractionService():
         self.ort_sess = ort.InferenceSession(self.model_path, providers=providers)
         self.input_shape = self.ort_sess._inputs_meta[0].shape[1:3]
 
-        img: str = image_decode(dto['image'])
         face_crops: dict = dto['face_crops']
-        frame: np.array = np.array(img)
 
         for key, value in face_crops.copy().items():
             t, l, b, r = value["tlbr"]
             face_crops[key]['face_encoding'] = self.encode(frame[t:b, l:r]).tolist()
 
-        return {
-            'image': dto['image'],
+        return (frame, schema.dump({
             'face_crops': face_crops,
-        }
+            })
+        )
         
     def encode(self, face_image: np.ndarray) -> np.ndarray:
         face = self.normalize(face_image)

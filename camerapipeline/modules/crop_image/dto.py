@@ -1,12 +1,16 @@
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields, EXCLUDE
 
 class CropImageDTO(Schema):
-    image = fields.Str()
-    width = fields.Number()
-    height = fields.Number()
-    position_x = fields.Number()
-    position_y = fields.Number()
+    class Meta:
+        unknown = EXCLUDE
+
+    width = fields.Integer()
+    height = fields.Integer()
+    position_x = fields.Integer()
+    position_y = fields.Integer()
 
 class CropFaceDTO(Schema):
-    image = fields.Str()
+    class Meta:
+        unknown = EXCLUDE
+    
     face_crops = fields.Dict(required=True, keys=fields.Integer(), values=fields.Dict())

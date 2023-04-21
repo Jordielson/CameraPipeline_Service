@@ -1,4 +1,3 @@
-from typing import List
 from injector import inject
 from .dto import FaceMatchingDTO
 from .dto import FaceMatchingRegistryDTO
@@ -8,18 +7,20 @@ from camerapipeline.shared.utlis.image import *
 import typing
 import numpy as np 
 
+schema: FaceMatchingDTO = FaceMatchingDTO()
+register_schema: FaceMatchingRegistryDTO = FaceMatchingRegistryDTO()
+
 class FaceMatchingService():
     @inject
     def __init__(self, repository: FaceMatchingRespository):
         self.repository = repository
         self.anchors = {}
 
-    def face_matching(self, dto: FaceMatchingDTO):
-        img = image_decode(dto['image'])
+    def face_matching(self, frame: np.ndarray, data: dict):
+        dto = schema.load(data)
+
         face_crops = dto['face_crops']
         threshold = dto['threshold']
-
-        frame: np.array = np.array(img)
 
         anchors = self.load_anchors()
 
@@ -29,13 +30,15 @@ class FaceMatchingService():
             if np.max(distances) > threshold:
                 face_crops[key]["name"] = list(anchors.keys())[np.argmax(distances)]
 
-        return {
-            'image': dto['image'],
+        return (frame, schema.dump({
             'face_crops': face_crops,
-        }
+            })
+        )
 
 
-    def register_face_matching(self, dto: FaceMatchingRegistryDTO):
+    def register_face_matching(self, frame: np.ndarray, data: dict):
+        dto = register_schema.load(data)
+
         if len(dto['face_crops']) == 1:
             face_encoding = dto['face_crops'][0]['face_encoding']
 
@@ -48,7 +51,7 @@ class FaceMatchingService():
             self.load_anchors(force_load=True)
 
             dto['face_crops'][0]['name'] = dto['name']
-            return dto
+            return (frame, register_schema.dump(dto))
         else:
             raise ValueError("No face detected or more than one face detected")
     

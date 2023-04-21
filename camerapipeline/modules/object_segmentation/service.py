@@ -8,14 +8,12 @@ class ObjectSegmentationService():
     def __init__(self):
         super()
 
-    def tracking(self, dto: ObjectSegmentationSchema):
-        image = image_decode(dto['image'])
-        img = np.array(image) 
+    def tracking(self, frame: np.ndarray, data: dict):
         # Convert RGB to BGR 
-        img = img[:, :, ::-1].copy() 
+        frame = frame[:, :, ::-1].copy() 
 
-        img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-        img_rgb = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+        img_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        img_rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
         
         # Use minSize because for not 
         # bothering with extra-small 
@@ -47,6 +45,4 @@ class ObjectSegmentationService():
         # plt.imshow(img_rgb)
         # plt.show()
 
-        im_pil = Image.fromarray(img_rgb)
-
-        return {"image": image_encode(im_pil)}
+        return (img_rgb, {})

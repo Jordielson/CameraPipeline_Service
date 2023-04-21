@@ -18,6 +18,7 @@ onnxruntime = "*"
 mediapipe = "*"
 boto3 = "*"
 tinydb = "*"
+requests-toolbelt = "*"
 
 [dev-packages]
 

@@ -1,21 +1,25 @@
 from typing import List
 from .dto import FaceDetectionDTO
+from .dto import FaceDetectionResponseDTO
 from camerapipeline.shared.utlis.image import *
 
 import typing
 import numpy as np
 import mediapipe as mp
 
+schema: FaceDetectionDTO = FaceDetectionDTO()
+resp_schema: FaceDetectionResponseDTO = FaceDetectionResponseDTO()
+
 class FaceDetectionService():
     def __init__(self) -> None:
         super()
 
-    def face_detection(self, dto: FaceDetectionDTO) -> dict:
-        img = image_decode(dto['image'])
+    def find(self, frame: np.ndarray, data: dict) -> dict:
+        dto = schema.load(data)
+
         self.mp_face_detection = mp.solutions.face_detection
         self.face_detection = self.mp_face_detection.FaceDetection(model_selection=dto['model_selection'], min_detection_confidence=dto['confidence'])
-        
-        frame: np.array = np.array(img.convert('RGB'))
+
         face_crops = {}
 
         results = self.process(frame)
@@ -23,10 +27,11 @@ class FaceDetectionService():
         if results.detections:
             face_crops = {index: {"name": "Ignoto", "tlbr": tlbr.tolist()} for index, tlbr in enumerate(self.tlbr(frame, results.detections))}
 
-        return {
-            "image": image_encode_nparray(frame),
+        
+        return (frame, resp_schema.dump({
             "face_crops": face_crops,
-        }
+            })
+        )
             
     
     def process(self, frame: np.ndarray) -> np.ndarray:
