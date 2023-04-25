@@ -1,5 +1,4 @@
 from typing import List
-from .dto import ObjectSegmentationSchema
 import numpy as np
 import cv2 as cv
 from camerapipeline.shared.utlis.image import *

@@ -11,7 +11,6 @@ import json
 import cv2 as cv
 import tempfile
 from tqdm import tqdm 
-import stow
 
 def check_input_content(request) -> Encode:
 
@@ -72,50 +71,49 @@ def process_file(data: dict, file: bytes, filename: str, callback, *args) -> dic
 
             return data, image_encode_bytes(out_frame)
         elif file_ext in ALLOWED_VIDEO_EXTENSIONS: 
-            return process_video(data=data, video=file, filename=filename, callback=callback)
+            return process_video(data=data, video=file, file_ext=file_ext, callback=callback)
         else:
             raise Exception("Not a valid file extension")
 
-def process_video(data: dict, video: bytes, filename:str, callback, *args) -> dict:
-    with tempfile.NamedTemporaryFile() as temp:
+def process_video(data: dict, video: bytes, file_ext:str, callback, *args) -> dict:
+    with tempfile.NamedTemporaryFile(suffix=file_ext) as temp:
         temp.write(video)
 
-        video_stream = cv.VideoCapture(temp.name)
+        with tempfile.NamedTemporaryFile(suffix='_out.mp4',) as temp_out:
+            video_stream = cv.VideoCapture(temp.name)
 
-        if not video_stream.isOpened():
-            raise Exception(f"Error opening video")
+            if not video_stream.isOpened():
+                raise Exception(f"Error opening video")
 
-        width  = int(video_stream.get(cv.CAP_PROP_FRAME_WIDTH))
-        height = int(video_stream.get(cv.CAP_PROP_FRAME_HEIGHT))
-        fps = int(video_stream.get(cv.CAP_PROP_FPS))
-        frames = int(video_stream.get(cv.CAP_PROP_FRAME_COUNT))
+            width  = int(video_stream.get(cv.CAP_PROP_FRAME_WIDTH))
+            height = int(video_stream.get(cv.CAP_PROP_FRAME_HEIGHT))
+            fps = int(video_stream.get(cv.CAP_PROP_FPS))
+            frames = int(video_stream.get(cv.CAP_PROP_FRAME_COUNT))
 
-        output_path = filename.replace(f".{stow.extension(filename)}", "_out.mp4")
-        out: cv2.VideoWriter = cv.VideoWriter(output_path, cv.VideoWriter_fourcc(*'MP4V'), fps, (width, height))
+            out: cv.VideoWriter = cv.VideoWriter(temp_out.name, cv.VideoWriter_fourcc(*'MP4V'), fps, (width, height))
 
-        out_data: dict = {'video': {}}
+            out_data: dict = {'video': {}}
 
-        data_without_video = data.copy()
-        if 'video' in data_without_video:
-            del data_without_video['video']
+            data_without_video = data.copy()
+            if 'video' in data_without_video:
+                del data_without_video['video']
 
-        for fnum in tqdm(range(frames)):
-            success, frame = video_stream.read()
-            if not success:
-                break
+            for fnum in tqdm(range(frames)):
+                success, frame = video_stream.read()
+                if not success:
+                    break
 
-            input_data = {}
-            if 'video' in data:
-                input_data = data['video'][str(fnum)] | data_without_video
-            else:
-                input_data = data_without_video
+                input_data = {}
+                if 'video' in data:
+                    input_data = data['video'][str(fnum)] | data_without_video
+                else:
+                    input_data = data_without_video
 
-            frame_out, out_data['video'][fnum] = callback(frame, input_data, *args)
+                frame_out, out_data['video'][fnum] = callback(frame, input_data, *args)
 
-            out.write(frame_out)
+                out.write(frame_out)
 
-        video_stream.release()
-        out.release()
+            video_stream.release()
+            out.release()
 
-        with open(output_path,'rb') as f:
-            return out_data, f.read()
+            return out_data, temp_out.file.read()
