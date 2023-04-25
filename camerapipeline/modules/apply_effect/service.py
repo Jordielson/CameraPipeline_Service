@@ -5,21 +5,19 @@ import cv2 as cv
 import numpy as np
 from PIL import Image
 
+schema: EffectImageSchema = EffectImageSchema()
+
 class EffectImageService():
     def __init__(self):
         super()
 
-    def apply_effect(self, dto: EffectImageSchema):
-        image = image_decode(dto['image'])
+    def apply_effect(self, frame, data: dict):
+        dto = schema.load(data)
 
-        # Convert pil image to cv image 
-        open_cv_image = np.array(image) 
         # Convert RGB to BGR 
-        open_cv_image = open_cv_image[:, :, ::-1].copy() 
+        open_cv_image = frame[:, :, ::-1].copy() 
         code: ColorCodeEnum = ColorCodeEnum[dto['effect'].upper()]
 
-        hsv = cv.cvtColor(open_cv_image, code.value ) 
+        hsv = cv.cvtColor(open_cv_image, code.value)
 
-        im_pil = Image.fromarray(hsv)
-
-        return image_encode(im_pil)
+        return (hsv, dto)

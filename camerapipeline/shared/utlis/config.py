@@ -1,0 +1,5 @@
+
+ALLOWED_VIDEO_EXTENSIONS = {'mp4'}
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+

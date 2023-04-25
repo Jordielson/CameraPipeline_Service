@@ -6,7 +6,10 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 def get_named_modules() -> List[str]:
-    """Get module name"""
+    """ Get module name
+    Create an environment variable in your .env file with the name MODULE_PATH 
+    that specifies the module path in project.
+    """
     modules: List[str] = os.listdir(f'{sys.path[0]}{os.environ["MODULE_PATH"]}')
     directories: List[str] = []
 

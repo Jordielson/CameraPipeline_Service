@@ -1,12 +1,12 @@
 from flask import Blueprint, request
 from camerapipeline.shared.enums.http_verb import HttpVerbENUM
-from .service import EffectImageService
+from .service import FaceDetectionService
 
 from camerapipeline.shared.process.process import process
 
-blueprint = Blueprint("ApplyEffect", __name__, url_prefix="/api/apply-effect")
+blueprint = Blueprint("FaceDetection", __name__, url_prefix="/api/face-detection")
 
 @blueprint.route('/', methods=[HttpVerbENUM.POST.value])
-def apply_effect(service: EffectImageService):
+def face_detection(service: FaceDetectionService):
 
-    return process(request, service.apply_effect)
+    return process(request, service.find)

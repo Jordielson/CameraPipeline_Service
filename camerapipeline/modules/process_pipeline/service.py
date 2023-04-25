@@ -1,30 +1,34 @@
 from typing import List
-from .dto import ProcessPipelineSchema
+from .dto import PipelineSchema
 from .dto import ServiceSchema
-import requests
+from camerapipeline.shared.utlis.file import file_extension
+from camerapipeline.shared.utlis.image import *
+from camerapipeline.shared.request_tools.encode import *
+from camerapipeline.shared.request_tools.multipart_encode import *
+from camerapipeline.shared.request_tools.encode_factory import *
+from camerapipeline.shared.utlis.config import *
 
 class ProcessPipelineService():
     def __init__(self):
         super()
+        self.pipeline_schema = PipelineSchema()
 
-    def process_pipeline(self, dto: ProcessPipelineSchema):
-        images: list = []
+    def process_pipeline(self, encode: Encode) -> Encode:
+        data = self.pipeline_schema.load(encode.data['pipeline'])
 
-        services: List[ServiceSchema] = dto['pipeline']['pdilist']
+        services: List[ServiceSchema] = data['pdilist']
         root_list: list = self.find_root(services=services)
+
+        del encode.data['pipeline']
         for service in services:
             if service['index'] in root_list:
-                images.append(
-                    self.process_sequence(
-                        service=service, 
-                        services=services, 
-                        image=dto['input']
-                    )
+                encode = self.custom_processing(
+                    service=service, 
+                    services=services, 
+                    encode=encode
                 )
-        if len(images):
-            return images[0]
-        else:
-            return dto['input']
+        
+        return encode
 
     def find_root(self, services: List[ServiceSchema]) -> List[int]:
         root_list: List[int] = []
@@ -39,31 +43,70 @@ class ProcessPipelineService():
 
         return root_list
 
-    def process_sequence(self, service: ServiceSchema, services: List[ServiceSchema], image: str):
+    def custom_processing(self, service: ServiceSchema, services: List[ServiceSchema], encode: Encode) -> dict:
         url: str = service['digitalProcess']['url']
-        json: dict = {
-            "image": image,
-        }
+
         for value_parameter in service['valueParameters']:
             value = value_parameter['value']
 
-            if value_parameter['parameter']['type'] == 'NUMBER':
-                value = float(value)
-            elif value_parameter['parameter']['type'] == 'BOOL':
-                if value == 'true':
-                    value = True
-                else:
-                    value = False
-            
-            json[value_parameter['parameter']['name']] = value
+            if value:
+                if value_parameter['parameter']['type'] == 'NUMBER':
+                    value = float(value)
+                elif value_parameter['parameter']['type'] == 'BOOL':
+                    if value == 'true':
+                        value = True
+                    else:
+                        value = False
+                        
+                encode.add_value(value_parameter['parameter']['name'], value)
 
-        response = requests.post(url, json=json)
+        response = encode.post(url=url)
+
+        encode = EncodeFactory.factory(response.headers['Content-Type'])
+        encode.decode_response(response=response)
+
         if response.status_code != 200:
             raise Exception('{} {}'.format(service['digitalProcess']['name'], 'could not process the file'))
-
         if len(service['children']):
             for serv in services:
                 if serv['index'] in service['children']:
-                    return self.process_sequence(service=serv, services=services, image=response.content.decode('utf-8'))
+                    return self.custom_processing(service=serv, services=services, encode=encode)
         else:
-            return response.content
+            return encode
+
+    def process(self, encode: Encode) -> Encode: 
+        encoder: Encode = self.process_pipeline(
+            encode=encode,
+        )
+
+        file: bytes = None
+        filename: str = None
+        if type(encoder) is JsonEncode:
+            file = decode(encoder.find_data('input'))
+            filename = 'image_output.png'
+        elif type(encoder) is MultipartEncode:
+            filename, file = encoder.find_file('file')
+        else:
+            return encoder
+        
+        encode_out = self.create_output_encoder(filename, file)
+
+        return encode_out
+        
+    def create_output_encoder(self, filename, data):
+        file_ext = file_extension(filename)
+        file_type: str = ''
+        if file_ext in ALLOWED_IMAGE_EXTENSIONS:
+            file_type = 'image'
+        elif file_ext in ALLOWED_VIDEO_EXTENSIONS:
+            file_type = 'video'
+        else:
+            file_type = 'undefined'
+
+        content_type = f'{file_type}/{file_ext}'
+
+        encode_out = EncodeFactory.factory(file_type)
+        encode_out.headers = {'Content-Type': content_type, 'Content-Disposition': 'attachment; filename="%s"' % filename}
+        encode_out.data = data
+        
+        return encode_out
