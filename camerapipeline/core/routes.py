@@ -10,6 +10,7 @@ def init_routes(app):
                 f'.modules.{named_module}.controller', package='camerapipeline')
             app.register_blueprint(getattr(module, 'blueprint'))
         except ModuleNotFoundError as exception:
+            print(exception.msg)
             pass
         except Exception as exception:
             print(traceback.format_exc())

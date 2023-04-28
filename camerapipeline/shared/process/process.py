@@ -11,6 +11,8 @@ import json
 import cv2 as cv
 import tempfile
 from tqdm import tqdm 
+import os
+import sys
 
 def check_input_content(request) -> Encode:
 
@@ -71,15 +73,15 @@ def process_file(data: dict, file: bytes, filename: str, callback, *args) -> dic
 
             return data, image_encode_bytes(out_frame)
         elif file_ext in ALLOWED_VIDEO_EXTENSIONS: 
-            return process_video(data=data, video=file, file_ext=file_ext, callback=callback)
+            return process_video(data=data, video=file, callback=callback)
         else:
             raise Exception("Not a valid file extension")
 
-def process_video(data: dict, video: bytes, file_ext:str, callback, *args) -> dict:
-    with tempfile.NamedTemporaryFile(suffix=file_ext) as temp:
+def process_video(data: dict, video: bytes, callback, *args) -> dict:
+    with tempfile.NamedTemporaryFile(suffix='.mp4') as temp:
         temp.write(video)
 
-        with tempfile.NamedTemporaryFile(suffix='_out.mp4',) as temp_out:
+        with tempfile.NamedTemporaryFile(suffix='.mp4',) as temp_out:
             video_stream = cv.VideoCapture(temp.name)
 
             if not video_stream.isOpened():
@@ -116,4 +118,6 @@ def process_video(data: dict, video: bytes, file_ext:str, callback, *args) -> di
             video_stream.release()
             out.release()
 
-            return out_data, temp_out.file.read()
+            with tempfile.NamedTemporaryFile(suffix='.mp4',) as temp_out_264:
+                os.system(f"ffmpeg -y -i {temp_out.name} -vcodec libx264 {temp_out_264.name}")
+                return out_data, temp_out_264.file.read()
