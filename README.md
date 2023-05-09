@@ -1,1 +1,1 @@
-# CameraPipeline Service
+# ImagePipeline Service

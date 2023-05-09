@@ -1,0 +1,16 @@
+Flask==2.2.3
+Flask-Cors==3.0.10
+Flask-Injector==0.14.0
+requests-toolbelt
+requests
+marshmallow
+python-dotenv
+pillow
+opencv-python
+tinydb
+boto3
+mediapipe
+stow
+numpy
+tqdm
+onnxruntime
